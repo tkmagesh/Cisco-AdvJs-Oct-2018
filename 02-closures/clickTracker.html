@@ -3,9 +3,27 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Click Tracker</title>
+	<script>
+		(function myApp(){
+			var counter = 0;
+
+			function onBtnTrackClick(){
+				++counter;
+				document.getElementById('result').innerHTML = counter;
+			}
+
+			function init(){
+				var btnTrack = document.getElementById('btnTrack');
+				btnTrack.addEventListener('click', onBtnTrackClick);
+			}
+
+			window.addEventListener('DOMContentLoaded', init);
+		})();
+		//myApp();
+	</script>
 </head>
 <body>
-	<input type="button" value="Track" id="btnTrack">
+	<input type="button" value="Track" id="btnTrack" >
 	<div id="result">[0]</div>
 </body>
 </html>
