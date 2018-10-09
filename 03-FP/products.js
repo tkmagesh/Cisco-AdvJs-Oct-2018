@@ -11,6 +11,16 @@ function describe(title, fn){
 	fn();
 	console.groupEnd();
 }
+
+function describeGroup(groupedObj){
+	for(var key in groupedObj){
+		describe('Key - [' + key + ']', function(){
+			console.table(groupedObj[key]);
+		});
+	}
+}
+
+
 /* sort, filter, groupBy */
 
 describe('Initial List', function(){
@@ -33,8 +43,9 @@ describe('Sort', function(){
 	});
 
 	function sort(list, comparer){
-		if (typeof comparer !== 'function' || typeof comparer !== 'string')
+		if (typeof comparer !== 'function' && typeof comparer !== 'string'){
 			return;
+		}
 		var comparerFn = function(){ return 0; };
 		if (typeof comparer === 'function')
 			comparerFn = comparer;
@@ -52,6 +63,12 @@ describe('Sort', function(){
 						list[i] = list[j];
 						list[j] = temp;
 					}
+	}
+
+	function getDescendingComparer(comparer){
+		return function(item1, item2){
+			return comparer(item1, item2) * -1;
+		}
 	}
 
 	describe('Any list by any attribute', function(){
@@ -85,16 +102,20 @@ describe('Sort', function(){
 						list[j] = temp;
 					}
 		}*/
-
-		describe('products by value [cost * units]', function(){
-			var productComparerByValue = function(p1, p2){
-				var p1Value = p1.cost * p1.units,
-					p2Value = p2.cost * p2.units;
-				if (p1Value < p2Value) return -1;
-				if (p1Value > p2Value) return 1;
-				return 0;
-			};
+		var productComparerByValue = function(p1, p2){
+			var p1Value = p1.cost * p1.units,
+				p2Value = p2.cost * p2.units;
+			if (p1Value < p2Value) return -1;
+			if (p1Value > p2Value) return 1;
+			return 0;
+		};
+		describe('products by value [cost * units]', function(){	
 			sort(products, productComparerByValue);
+			console.table(products);
+		});
+		describe('products by value [cost * units][descending]', function(){
+			var descendingComparerByValue = getDescendingComparer(productComparerByValue);	
+			sort(products, descendingComparerByValue);
 			console.table(products);
 		});
 	})
@@ -164,6 +185,44 @@ describe('Filter', function(){
 				var wellStockedProducts = filter(products, wellStockedProductCriteria);
 				console.table(wellStockedProducts);
 			});
+		});
+	});
+});
+
+describe('GroupBy', function(){
+	describe('Default GroupBy - [Products by category]', function(){
+		function groupProductsByCategory(){
+			var result = {};
+			for(var index = 0, count = products.length; index < count; index++){
+				var category = products[index].category;
+				if (typeof result[category] === 'undefined')
+					result[category] = [];
+				result[category].push(products[index]);
+			}
+			return result;
+		}
+		var productsByCategory = groupProductsByCategory();
+		describeGroup(productsByCategory);
+	});
+	describe('any list by any key', function(){
+		function groupBy(list, keySelector){
+			var result = {};
+			for(var index = 0, count = list.length; index < count; index++){
+				var key = keySelector(list[index]);
+				/*if (typeof result[key] === 'undefined')
+					result[key] = [];*/
+				result[key] = result[key] || [];
+				result[key].push(list[index]);
+			}
+			return result;
+		}
+
+		describe('products by cost', function(){
+			var costKeySelector = function(product){
+				return product.cost > 50 ? 'costly' : 'affordable';
+			};
+			var productsByCost = groupBy(products, costKeySelector);
+			describeGroup(productsByCost);
 		});
 	});
 });
