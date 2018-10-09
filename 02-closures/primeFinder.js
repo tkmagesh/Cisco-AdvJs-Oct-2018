@@ -1,7 +1,6 @@
 
 var isPrime = (function(){
 	var cache = {};
-
 	return function(n){
 		if (typeof cache[n] !== 'undefined')
 			return cache[n];
